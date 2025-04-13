@@ -1,0 +1,9 @@
+[theme]
+base = "light"              # Вы можете выбрать "dark" если нужен темный базовый режим
+primaryColor = "#1CAF5E"     # Основной цвет приложения
+backgroundColor = "#FFFFFF"  # Цвет фона основной области
+secondaryBackgroundColor = "#D0FFD1"  # Цвет фона боковой панели
+textColor = "#000000"        # Цвет текста
+
+[client]
+showSidebarNavigation = false
