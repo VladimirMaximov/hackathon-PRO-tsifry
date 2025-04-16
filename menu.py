@@ -16,13 +16,8 @@ def authenticated_menu():
 def unauthenticated_menu():
     with st.sidebar:
         st.header("Авторизация")
-        # Кнопка "Войти" с popover (имитируется через st.expander)
         if st.button("Войти", key="login"):
             account_login()
-            #with st.expander("Вход", expanded=True):
-            #    login_id = st.text_input("Введите ваш ID", key="login_id")
-            #    if st.button("Подтвердить вход", key="confirm_login"):
-            #        st.success(f"Добро пожаловать, {login_id}!")
         st.markdown("---")
         st.header("Регистрация")
         # Кнопка "Зарегистрироваться" с popover (имитируется через st.expander)
