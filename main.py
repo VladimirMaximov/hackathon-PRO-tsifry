@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
-from menu import menu
 from user import User
 from stages.stage1 import renderStage1
 from stages.stage2 import renderStage2
 from stages.stage3 import renderStage3
+from stages.stage4 import renderStage4
 
 
 st.set_page_config(
@@ -27,4 +27,26 @@ elif st.session_state.stage == 2:
     renderStage2(data)
 elif st.session_state.stage == 3:
     renderStage3()
+elif st.session_state.stage == 4:
+    dfs = [pd.DataFrame({"Наименование": ["Картошка фри"],
+                         "Количество": [1],
+                         "Цена за 1 шт.": [100],
+                         "Цена": [100]}),
+           pd.DataFrame({"Наименование": ["Картошка фри"],
+                         "Количество": [1],
+                         "Цена за 1 шт.": [100],
+                         "Цена": [100]}),
+           pd.DataFrame({"Наименование": ["Гамбургер"],
+                         "Количество": [0.5],
+                         "Цена за 1 шт.": [150],
+                         "Цена": [75]}),
+           pd.DataFrame({"Наименование": ["Гамбургер"],
+                         "Количество": [0.5],
+                         "Цена за 1 шт.": [150],
+                         "Цена": [75]}),
+           pd.DataFrame({"Наименование": ["Кола"],
+                         "Количество": [1],
+                         "Цена за 1 шт.": [120],
+                         "Цена": [120]})]
+    renderStage4(dfs)
 
