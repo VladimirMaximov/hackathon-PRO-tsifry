@@ -100,26 +100,26 @@ def renderStage3():
         if st.button("Далее", use_container_width=True):
             st.session_state.stage = 4
 
-            st.session_state.dfs = [pd.DataFrame({"Наименование": ["Картошка фри"],
-                                                  "Количество": [1],
-                                                  "Цена за 1 шт.": [100],
-                                                  "Цена": [100]}),
-                                    pd.DataFrame({"Наименование": ["Картошка фри"],
-                                                  "Количество": [1],
-                                                  "Цена за 1 шт.": [100],
-                                                  "Цена": [100]}),
-                                    pd.DataFrame({"Наименование": ["Гамбургер"],
-                                                  "Количество": [0.5],
-                                                  "Цена за 1 шт.": [150],
-                                                  "Цена": [75]}),
-                                    pd.DataFrame({"Наименование": ["Гамбургер"],
-                                                  "Количество": [0.5],
-                                                  "Цена за 1 шт.": [150],
-                                                  "Цена": [75]}),
-                                    pd.DataFrame({"Наименование": ["Кола"],
-                                                  "Количество": [1],
-                                                  "Цена за 1 шт.": [120],
-                                                  "Цена": [120]})]
+            st.session_state.dfs = [pd.DataFrame({"Наименование": [],
+                                                  "Количество": [],
+                                                  "Цена за 1 шт.": [],
+                                                  "Цена": []}),
+                                    pd.DataFrame({"Наименование": [],
+                                                  "Количество": [],
+                                                  "Цена за 1 шт.": [],
+                                                  "Цена": []}),
+                                    pd.DataFrame({"Наименование": [],
+                                                  "Количество": [],
+                                                  "Цена за 1 шт.": [],
+                                                  "Цена": []}),
+                                    pd.DataFrame({"Наименование": [],
+                                                  "Количество": [],
+                                                  "Цена за 1 шт.": [],
+                                                  "Цена": []}),
+                                    pd.DataFrame({"Наименование": [],
+                                                  "Количество": [],
+                                                  "Цена за 1 шт.": [],
+                                                  "Цена": []})]
 
             distributed = pd.concat(st.session_state.dfs, ignore_index=True)
 
@@ -136,8 +136,7 @@ def renderStage3():
             main_tuples = st.session_state.df.apply(lambda row: tuple(row), axis=1)
             distributed_tuples = distributed.apply(lambda row: tuple(row), axis=1)
 
-            st.session_state.rest_dishes = st.session_state.df[main_tuples.isin(distributed_tuples)].reset_index(
-                drop=True)
+            st.session_state.rest_dishes = st.session_state.df
 
             st.rerun()
 

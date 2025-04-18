@@ -1,14 +1,12 @@
-import joblib
 import streamlit as st
-import pandas as pd
-from sentence_transformers import SentenceTransformer
 
 from user import User
 from stages.stage1 import renderStage1
 from stages.stage2 import renderStage2
 from stages.stage3 import renderStage3
 from stages.stage4 import renderStage4
-
+from stages.stage5 import renderStage5
+from OCR import for_classifier
 
 st.set_page_config(
             page_title="СберЧек - главная",  # Отображаемый заголовок вкладки
@@ -23,13 +21,12 @@ if "user" not in st.session_state:
 if st.session_state.stage == 1:
     renderStage1()
 elif st.session_state.stage == 2:
-    data = pd.DataFrame({"Наименование": ["Картошка фри", "Гамбургер", "Кола"],
-                         "Количество": [2, 1, 1],
-                         "Цена за 1 шт.": [100, 150, 120],
-                         "Цена": [200, 150, 120]})
-    renderStage2(data)
+    st.session_state.df = for_classifier.get_result(st.session_state.img_bgr)
+    renderStage2(st.session_state.df)
 elif st.session_state.stage == 3:
     renderStage3()
 elif st.session_state.stage == 4:
     renderStage4()
+else:
+    renderStage5()
 

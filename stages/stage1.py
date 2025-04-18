@@ -1,3 +1,5 @@
+import cv2
+import numpy as np
 import streamlit as st
 from menu import menu
 
@@ -8,8 +10,16 @@ def renderStage1():
     uploaded_file = st.file_uploader(label="", type=["jpg", "jpeg", "png"])
     if uploaded_file is not None:
         # Открываем изображение с помощью Pillow
-        st.session_state.image = uploaded_file
+        file_bytes = uploaded_file.read()  # bytes
+
+        # 2. Делаем из них numpy-массив uint8
+        np_arr = np.frombuffer(file_bytes, dtype=np.uint8)
+
+        # 3. Декодируем этот буфер в BGR-изображение OpenCV
+        st.session_state.img_bgr = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
         st.session_state.stage = 2
+
         st.rerun()
+
 
     menu()
