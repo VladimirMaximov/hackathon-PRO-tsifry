@@ -6,7 +6,6 @@ from menu import menu
 
 def renderStage1():
     st.markdown("# СберЧек - разделение счета по фотографии чека")
-    st.image("test_photo2.jpg",)
     uploaded_file = st.file_uploader(label="", type=["jpg", "jpeg", "png"])
     if uploaded_file is not None:
         # Открываем изображение с помощью Pillow
