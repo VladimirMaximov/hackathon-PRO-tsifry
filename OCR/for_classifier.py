@@ -8,6 +8,7 @@ from sklearn.linear_model import LogisticRegression
 import joblib
 import pandas as pd
 from sentence_transformers import SentenceTransformer
+import shutil
 
 
 
@@ -66,7 +67,7 @@ def merge_arrays(arr):
         item = arr[i]
         if len(item) == 1:
             if isinstance(item[0], str):
-                result[-1][0] = ' '.join([result[-1][0], item[0]])
+                result[-1][0] = ' '.join([str(result[-1][0]), item[0]])
         else:
             result.append(item)
     return result[1:]
@@ -99,21 +100,78 @@ def predict_dish_category(dish_name, classifier, encode_model):
     most_probable = sorted(zip(categories, probs), key=lambda x: -x[1])[0]
     return most_probable[0]
 
-def get_result(path_img):
-    model = SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
-    classifier = joblib.load('best_model.joblib')
+# def get_result(path_img):
+#     pytesseract.pytesseract.tesseract_cmd = shutil.which("tesseract")
+#     model = SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
+#     classifier = joblib.load('best_model.joblib')
+#
+#     recognized_text = ocr_on_preprocessed_image(path_img)
+#     recognized_text = merge_numbers(recognized_text)
+#
+#     strings = [string for string in recognized_text.splitlines() if string]
+#     lines = [re.sub("[^А-Яа-я0-9,/-]", " ", string).split() for string in strings]
+#     prepare_dish = parse_dish(lines)
+#
+#     start = 0
+#     end = 0
+#     start_token = ["наименование", "кол-во", "количество", "цена", "сумма"]
+#     end_token = ["итого", "итог", "к оплате", "всего"]
+#     for idx, group in enumerate(prepare_dish):
+#         try:
+#             for name in group[0].split():
+#                 start_check = [fuzz.partial_token_sort_ratio(name, token) >= 85 for token in start_token]
+#                 end_check = [fuzz.partial_token_sort_ratio(name, token) >= 85 for token in end_token]
+#                 if any(start_check):
+#                     start = idx
+#                 if any(end_check):
+#                     end = idx
+#         except:
+#             continue
+#     end = len(prepare_dish) if end == 0 else end
+#     result = merge_arrays(parse_dish(lines)[start + 1:end])
+#     result_check = []
+#     for arr in result:
+#         dict_dishes = {}
+#         dict_dishes['name'] = arr[0]
+#         dict_dishes['count'] = arr[-2]
+#         dict_dishes['price'] = arr[-1]
+#         result_check.append(dict_dishes)
+#
+#     for string in result_check:
+#         try:
+#             product = string['name']
+#             prediction = predict_dish_category(product,classifier,model)
+#             string['category'] = prediction
+#         except:
+#             continue
+#
+#     return pd.DataFrame(result_check).dropna()
 
-    recognized_text = ocr_on_preprocessed_image(path_img)
+
+# Пример использования
+# if __name__ == "__main__":
+#     get_result("check2.jpg")
+
+
+def process_image(img):
+    recognized_text = ocr_on_preprocessed_image(img)
     recognized_text = merge_numbers(recognized_text)
-
     strings = [string for string in recognized_text.splitlines() if string]
     lines = [re.sub("[^А-Яа-я0-9,/-]", " ", string).split() for string in strings]
-    prepare_dish = parse_dish(lines)
 
+    return lines
+    # todo: delete
+    # return parse_dish(lines)
+    # data = get_predict(get_result(parse_dish(lines)), model, classifier)
+
+# Получаем список словарей в формате (название; количество; стоимость)
+def process_text(lines):
+    prepare_dish = parse_dish(lines)
     start = 0
     end = 0
     start_token = ["наименование", "кол-во", "количество", "цена", "сумма"]
     end_token = ["итого", "итог", "к оплате", "всего"]
+    # Находим начало и конец списка блюд с помощью ключевых слов
     for idx, group in enumerate(prepare_dish):
         try:
             for name in group[0].split():
@@ -126,65 +184,63 @@ def get_result(path_img):
         except:
             continue
     end = len(prepare_dish) if end == 0 else end
-    result = merge_arrays(parse_dish(lines)[start + 1:end])
+    result = merge_arrays(prepare_dish[start + 1:end])
     result_check = []
+    # Преобразуем каждую строку с блюдом в словарь
     for arr in result:
         dict_dishes = {}
         dict_dishes['name'] = arr[0]
         dict_dishes['count'] = arr[-2]
         dict_dishes['price'] = arr[-1]
         result_check.append(dict_dishes)
+    return result_check
 
-    for string in result_check:
+
+# Предсказываем категории всех блюд из чека, объединяем их в один датафрейм
+def get_predict(result, model, classifier):
+    result_check = []
+    for string in result:
         try:
             product = string['name']
-            prediction = predict_dish_category(product,classifier,model)
+            prediction = predict_dish_category(product, classifier, model)
             string['category'] = prediction
+            result_check.append(string)
         except:
             continue
-
     return pd.DataFrame(result_check).dropna()
 
+def get_result(img, delete_pred=False):
+    pytesseract.pytesseract.tesseract_cmd = shutil.which("tesseract")
+    check_lines = process_image(img)
+    processed_check = process_text(check_lines)
+    model = SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
+    classifier = joblib.load('best_model.joblib')
+    result = get_predict(processed_check, model, classifier)
+    if delete_pred:
+        result = format_result(result)
+    return result
+
+
+def format_result(df):
+    df.drop("category", axis=1, inplace=True)
+    df.columns = ["Наименование", "Количество", "Цена"]
+    df.loc[:, "Цена за 1 шт."] = df["Цена"] / df["Количество"]
+    return df
+
+
+# Возвращает по 1 блюду из каждой категории для чека
+def get_first_choice(data):
+    return data.groupby('category').nth(0)
+
+
+if __name__ == "__main__":
+    print(get_result("check2.jpg", delete_pred=True))
 
 # Пример использования
-if __name__ == "__main__":
-    # путь к исполняемому файлу tesseract
-    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-    path_img = 'check2.jpg'
-    try:
-        recognized_text = ocr_on_preprocessed_image(path_img)
-        import re
-
-        recognized_text = merge_numbers(recognized_text)
-        strings = [string for string in recognized_text.splitlines() if string]
-        lines = [re.sub("[^А-Яа-я0-9,/-]", " ", string).split() for string in strings]
-        prepare_dish = parse_dish(lines)
-
-        start = 0
-        end = 0
-        start_token = ["наименование", "кол-во", "количество", "цена", "сумма"]
-        end_token = ["итого", "итог", "к оплате", "всего"]
-        for idx, group in enumerate(prepare_dish):
-            try:
-                for name in group[0].split():
-                    start_check = [fuzz.partial_token_sort_ratio(name, token) >= 85 for token in start_token]
-                    end_check = [fuzz.partial_token_sort_ratio(name, token) >= 85 for token in end_token]
-                    if any(start_check):
-                        start = idx
-                    if any(end_check):
-                        end = idx
-            except:
-                continue
-        end = len(prepare_dish) if end == 0 else end
-        result = merge_arrays(parse_dish(lines)[start + 1:end])
-        result_check = []
-        for arr in result:
-            dict_dishes = {}
-            dict_dishes['name'] = arr[0]
-            dict_dishes['count'] = arr[-2]
-            dict_dishes['price'] = arr[-1]
-            result_check.append(dict_dishes)
-        print(result_check)
-
-    except Exception as e:
-        print("Ошибка:", e)
+# path_img = 'check2.jpg'
+# recognized_text = ocr_on_preprocessed_image(path_img)
+# recognized_text = merge_numbers(recognized_text)
+# strings = [string for string in recognized_text.splitlines() if string]
+# lines = [re.sub("[^А-Яа-я0-9,/-]", " ", string).split() for string in strings]
+# data = get_predict(get_result(parse_dish(lines)), model, classifier)
+# print(get_first_choice(data))
