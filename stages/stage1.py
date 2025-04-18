@@ -11,4 +11,5 @@ def renderStage1():
         st.session_state.image = uploaded_file
         st.session_state.stage = 2
         st.rerun()
+
     menu()
