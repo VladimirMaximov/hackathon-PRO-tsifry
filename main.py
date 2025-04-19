@@ -29,4 +29,3 @@ elif st.session_state.stage == 4:
     renderStage4()
 else:
     renderStage5()
-

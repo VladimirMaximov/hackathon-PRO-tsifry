@@ -2,3 +2,8 @@
 /__pycache__
 pages/__pycache__
 */__pycache__
+
+# Virtual environments
+venv/
+.env/
+.venv/
