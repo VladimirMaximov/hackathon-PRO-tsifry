@@ -5,9 +5,6 @@ from time import sleep
 
 
 def renderStage4():
-    # st.write(st.session_state.rest_dishes)
-    # st.write(st.session_state.dfs)
-    # st.write(st.session_state.df)
     st.session_state.final_dfs = []
 
     for i in range(1, st.session_state.more_info["guest_count"] + 1):

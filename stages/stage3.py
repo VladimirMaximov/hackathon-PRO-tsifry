@@ -15,7 +15,7 @@ def renderStage3():
     with col2:
         split_type = st.selectbox(
             label="",
-            options=["Автоматически", "равные суммы", "вручную"],
+            options=["Автоматически", "Равные суммы", "Вручную"],
             index=0,
             label_visibility="collapsed",
             placeholder="Выберите тип разделения"
@@ -33,7 +33,6 @@ def renderStage3():
             value=5,
             label_visibility="collapsed"
         )
-
 
     # 4. Три колонки: "Скидка:" текст, числовой input, выпадающий список с "%" и "руб."
     col1, col2, col3 = st.columns(3, vertical_alignment="center")
@@ -54,9 +53,8 @@ def renderStage3():
             options=["%", "руб."],
             index=0,
             key=2,
-            label_visibility = "collapsed"
+            label_visibility="collapsed"
         )
-
 
     # 5. Три колонки: "Чаевые:" текст, числовой input, выпадающий список с "%" и "руб."
     col1, col2, col3 = st.columns(3, vertical_alignment="center")
@@ -80,14 +78,12 @@ def renderStage3():
             label_visibility="collapsed"
         )
 
-
     # 6. Две колонки: "Добавить друзей:" текст, и кнопка "Добавить"
     col1, col2 = st.columns(2, vertical_alignment="center")
     with col1:
         st.markdown("**Добавить друзей:**")
     with col2:
         add_friend = st.button("Добавить", use_container_width=True)
-
 
     # 7. Две колонки: кнопки "Назад" и "Далее"
     col1, col2 = st.columns(2, vertical_alignment="center")
@@ -100,26 +96,15 @@ def renderStage3():
         if st.button("Далее", use_container_width=True):
             st.session_state.stage = 4
 
-            st.session_state.dfs = [pd.DataFrame({"Наименование": [],
-                                                  "Количество": [],
-                                                  "Цена за 1 шт.": [],
-                                                  "Цена": []}),
-                                    pd.DataFrame({"Наименование": [],
-                                                  "Количество": [],
-                                                  "Цена за 1 шт.": [],
-                                                  "Цена": []}),
-                                    pd.DataFrame({"Наименование": [],
-                                                  "Количество": [],
-                                                  "Цена за 1 шт.": [],
-                                                  "Цена": []}),
-                                    pd.DataFrame({"Наименование": [],
-                                                  "Количество": [],
-                                                  "Цена за 1 шт.": [],
-                                                  "Цена": []}),
-                                    pd.DataFrame({"Наименование": [],
-                                                  "Количество": [],
-                                                  "Цена за 1 шт.": [],
-                                                  "Цена": []})]
+            if split_type == "Автоматически":
+                st.session_state.dfs = split_automatic(guest_count)
+            elif split_type == "Равные суммы":
+                st.session_state.dfs = split_equal(guest_count)
+            else:
+                st.session_state.dfs = [pd.DataFrame({"Наименование": [],
+                                                      "Количество": [],
+                                                      "Цена за 1 шт.": [],
+                                                      "Цена": []}) for _ in range(guest_count)]
 
             distributed = pd.concat(st.session_state.dfs, ignore_index=True)
 
@@ -136,7 +121,7 @@ def renderStage3():
             main_tuples = st.session_state.df.apply(lambda row: tuple(row), axis=1)
             distributed_tuples = distributed.apply(lambda row: tuple(row), axis=1)
 
-            st.session_state.rest_dishes = st.session_state.df
+            st.session_state.rest_dishes = st.session_state.df[main_tuples.isin(distributed_tuples)].reset_index(drop=True)
 
             st.rerun()
 
@@ -151,3 +136,77 @@ def renderStage3():
         "tip_unit": tip_unit,
         "add_friend": add_friend
     }
+
+
+def split_automatic(guest_count: int) -> list[pd.DataFrame]:
+    """
+    Разбивает каждую «единицу» позиции по очереди между гостями:
+      - если количество – целое N, создаёт N кусков по 1 шт.
+      - и, если есть дробная часть, ещё один кусок с этим остатком.
+    Порождает список dfs длины guest_count, заполняет их жадно по минимальной сумме.
+    """
+    cols = ["Наименование", "Количество", "Цена за 1 шт.", "Цена"]
+    dfs = [pd.DataFrame(columns=cols) for _ in range(guest_count)]
+    totals = [0.0] * guest_count
+
+    for _, row in st.session_state.df.iterrows():
+        name = row["Наименование"]
+        qty = float(row["Количество"])
+        price_unit = float(row["Цена за 1 шт."])
+
+        # Сколько целых единиц
+        int_units = int(qty)
+        # Дробная часть (если есть)
+        frac_unit = qty - int_units
+
+        # 1) Раздаём по 1 шт. int_units раз
+        for _ in range(int_units):
+            # гость с наименьшей текущей суммой
+            idx = totals.index(min(totals))
+            new_row = {
+                "Наименование":    name,
+                "Количество":      1.0,
+                "Цена за 1 шт.":   price_unit,
+                "Цена":            price_unit * 1.0
+            }
+            dfs[idx] = pd.concat([dfs[idx], pd.DataFrame([new_row])], ignore_index=True)
+            totals[idx] += price_unit
+
+        # 2) Если осталась дробная часть – раздаём её одним куском
+        if frac_unit > 0:
+            idx = totals.index(min(totals))
+            new_row = {
+                "Наименование":    name,
+                "Количество":      frac_unit,
+                "Цена за 1 шт.":   price_unit,
+                "Цена":            price_unit * frac_unit
+            }
+            dfs[idx] = pd.concat([dfs[idx], pd.DataFrame([new_row])], ignore_index=True)
+            totals[idx] += price_unit * frac_unit
+
+    return dfs
+
+
+def split_equal(guest_count: int) -> list[pd.DataFrame]:
+    """
+        Делит каждую позицию поровну между всеми гостями.
+        Берёт исходник из st.session_state.df.
+        """
+    cols = ["Наименование", "Количество", "Цена за 1 шт.", "Цена"]
+    dfs = [pd.DataFrame(columns=cols) for _ in range(guest_count)]
+
+    for _, row in st.session_state.df.iterrows():
+        q_per = row["Количество"] / guest_count
+        price_per = row["Цена за 1 шт."]
+        for i in range(guest_count):
+            dfs[i] = pd.concat([
+                dfs[i],
+                pd.DataFrame([{
+                    "Наименование": row["Наименование"],
+                    "Количество": q_per,
+                    "Цена за 1 шт.": price_per,
+                    "Цена": q_per * price_per
+                }])
+            ], ignore_index=True)
+
+    return dfs
