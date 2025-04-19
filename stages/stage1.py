@@ -1,14 +1,13 @@
 import cv2
 import numpy as np
 import streamlit as st
-from PIL import Image
 from menu import menu
 
 
 def renderStage1():
     st.markdown("# СберЧек - разделение счета по фотографии чека")
     with st.columns(1)[0]:
-        st.image(Image.open("preview.png"))
+        st.image("preview.png")
         uploaded_file = st.file_uploader(label="", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
         if uploaded_file is not None:
             # Открываем изображение с помощью Pillow
