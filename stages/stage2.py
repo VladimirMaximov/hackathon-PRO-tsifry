@@ -8,7 +8,7 @@ def renderStage2(df: pd.DataFrame):
     st.markdown("# Измените значения в ячейках по необходимости")
 
     # 2. Вывод таблицы DataFrame
-    st.session_state.df = st.data_editor(df, num_rows="dynamic")
+    st.session_state.df = st.data_editor(df, num_rows="dynamic", hide_index=True)
 
     # 3. Вывод 3 кнопок в одной строке с использованием st.columns
     col1, col2, col3 = st.columns(3)
