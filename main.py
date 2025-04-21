@@ -17,6 +17,7 @@ st.set_page_config(
 if "user" not in st.session_state:
     st.session_state.user = User()
     st.session_state.stage = 1
+    st.session_state.show_photo = False
 
 if st.session_state.stage == 1:
     renderStage1()

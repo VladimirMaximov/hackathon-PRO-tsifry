@@ -21,7 +21,7 @@ def renderStage2(df: pd.DataFrame):
 
     with col2:
         if st.button("Посмотреть фото чека", use_container_width=True):
-            st.write("Нажата кнопка 'Посмотреть фото чека'")
+            st.session_state.show_photo = True
             # Здесь можно добавить логику для отображения фото чека
 
     with col3:
@@ -30,3 +30,12 @@ def renderStage2(df: pd.DataFrame):
             st.rerun()
             # Здесь можно добавить логику для перехода к следующему этапу
     menu()
+
+    if st.session_state.show_photo:
+        give_photo()
+        st.session_state.show_photo = False
+
+
+@st.dialog("Фото чека")
+def give_photo():
+    st.image(st.session_state.image)

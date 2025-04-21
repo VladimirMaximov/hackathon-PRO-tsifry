@@ -12,6 +12,7 @@ def renderStage1():
         if uploaded_file is not None:
             # Открываем изображение с помощью Pillow
             file_bytes = uploaded_file.read()  # bytes
+            st.session_state.image = file_bytes
 
             # 2. Делаем из них numpy-массив uint8
             np_arr = np.frombuffer(file_bytes, dtype=np.uint8)
