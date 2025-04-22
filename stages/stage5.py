@@ -5,16 +5,10 @@ from io import BytesIO
 import base64
 
 from menu import menu
+from qr_tool import gen_qr_code
+
 
 def renderStage5():
-    """
-    Этап 5: итоговая сводная таблица с колонками:
-      - Гость №
-      - Потратил (ProgressColumn)
-      - Цена в % (NumberColumn)
-      - Круговая диаграмма (ImageColumn)
-      - Оплатил (CheckboxColumn)
-    """
     st.markdown("# Итог")
     st.markdown("---")
 
@@ -104,6 +98,7 @@ def renderStage5():
             st.error("Неверный формат. Должно быть +7 и 10 цифр.")
         else:
             st.success(f"QR‑код для {phone} сгенерирован.")
+            st.image(gen_qr_code(phone))
 
     menu()
 
