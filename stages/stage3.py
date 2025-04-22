@@ -14,7 +14,7 @@ def renderStage3():
         st.markdown("**Тип разделения:**", )
     with col2:
         split_type = st.selectbox(
-            label="",
+            label="Разделение",
             options=["Автоматически", "Равные суммы", "Вручную"],
             index=0,
             label_visibility="collapsed",
@@ -27,7 +27,7 @@ def renderStage3():
         st.markdown("**Количество гостей:**")
     with col2:
         guest_count = st.number_input(
-            label="",
+            label="Количество гостей",
             min_value=1,
             step=1,
             value=5,
@@ -40,7 +40,7 @@ def renderStage3():
         st.markdown("**Скидка:**")
     with col2:
         discount_value = st.number_input(
-            label="",
+            label="Скидка",
             min_value=0.0,
             step=5.,
             value=0.0,
@@ -49,7 +49,7 @@ def renderStage3():
         )
     with col3:
         discount_unit = st.selectbox(
-            label="",
+            label="Вариант",
             options=["%", "руб."],
             index=0,
             key=2,
@@ -62,7 +62,7 @@ def renderStage3():
         st.markdown("**Чаевые:**")
     with col2:
         tip_value = st.number_input(
-            label="",
+            label="Чаевые",
             min_value=0.0,
             step=5.,
             value=0.0,
@@ -71,7 +71,7 @@ def renderStage3():
         )
     with col3:
         tip_unit = st.selectbox(
-            label="",
+            label="Вариант",
             options=["%", "руб."],
             index=0,
             key=4,
@@ -105,6 +105,8 @@ def renderStage3():
                                                       "Количество": [],
                                                       "Цена за 1 шт.": [],
                                                       "Цена": []}) for _ in range(guest_count)]
+                st.session_state.rest_dishes = st.session_state.df.copy()
+                st.rerun()
 
             distributed = pd.concat(st.session_state.dfs, ignore_index=True)
 

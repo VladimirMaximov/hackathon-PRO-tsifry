@@ -8,7 +8,9 @@ def renderStage1():
     st.markdown("# СберЧек - разделение счета по фотографии чека")
     with st.columns(1)[0]:
         st.image("preview.png")
-        uploaded_file = st.file_uploader(label="", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
+        uploaded_file = st.file_uploader(label="Загрузите файл", type=["jpg", "jpeg", "png"],
+                                         label_visibility="collapsed",
+                                         )
         if uploaded_file is not None:
             # Открываем изображение с помощью Pillow
             file_bytes = uploaded_file.read()  # bytes
